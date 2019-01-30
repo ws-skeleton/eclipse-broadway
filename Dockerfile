@@ -7,5 +7,7 @@ RUN echo "Downloading Eclipse" \
            chgrp -R 0 ${f} && \
            chmod -R g+rwX ${f}; \
        done
+VOLUME /projects
 COPY ./init.sh /
+EXPOSE 5000
 ENTRYPOINT [ "/init.sh" ]
