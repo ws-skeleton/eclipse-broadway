@@ -1,29 +1,31 @@
 #! /bin/bash
 
 # Set d-bus machine-id
-if [ ! -e /etc/machine-id ]; then
+if [ ! -s /etc/machine-id ]; then
   dbus-uuidgen > /etc/machine-id
 fi
-
 # Properly start DBus
+export DISPLAY=:0 # workaround dbus asks for DISPLAY to be set 
 echo "eclipse:x:$(id -u):0:root:/root:/bin/bash" >> /etc/passwd
 mkdir -p /var/run/dbus
-dbus-daemon --system
+dbus-daemon --system --fork &
+export G_MESSAGES_DEBUG=all
+export DBUS_SESSION_BUS_ADDRESS=$(dbus-daemon --session --fork --print-address)
 
-# Set global DISPLAY
-cat << EOF > /etc/profile.d/display.sh
-
-export BROADWAY_DISPLAY=:5
-export GDK_BACKEND=broadway
-EOF
-
-rm -f /tmp/.X*-lock
-broadwayd :5 -p 5000 &
+broadwayd $BROADWAY_DISPLAY -p $BROADWAY_PORT &
 cd ~
-echo "Sett env vars"
-export BROADWAY_DISPLAY=:5
-export GDK_BACKEND=broadway
+echo '*** Please connect to http://'`grep $HOSTNAME /etc/hosts | awk '{print $1}'`':'`echo $BROADWAY_PORT`' using your web browser ***'
+
 echo "Starting Eclipse IDE..."
-echo '*** Please connect to http://'`grep $HOSTNAME /etc/hosts | awk '{print $1}'`':5000 using your web browser ***'
-/root/eclipse/eclipse -data /projects
+/root/eclipse/eclipse -data /root/eclipse-workspace &
+# Next 2 lines are workaround for Broadway often missing main window when Import wizard opens
+# When broadway get smarter here, we can just add the --launcher.openFile to previous line
+sleep 15
+/root/eclipse/eclipse --launcher.openFile /projects
+
+# This allows Eclipse IDE to restart without stopping the container
 tail -f /dev/null
+
+# Tools to debug the container
+#/bin/bash
+#gtk3-demo
