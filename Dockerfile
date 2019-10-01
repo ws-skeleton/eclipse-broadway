@@ -49,7 +49,8 @@ RUN for f in "/etc" "/var/run" "/projects" "/root"; do \
     	chmod -R g+rwX ${f}; \
     done
 
-
 COPY .fonts.conf /root/
+COPY .fonts.conf /
+
 COPY ./init.sh /
 ENTRYPOINT [ "/init.sh" ]
