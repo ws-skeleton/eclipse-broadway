@@ -44,10 +44,10 @@ RUN echo "Downloading Eclipse" && \
 RUN mkdir /projects
 VOLUME /projects
 
-#    for f in "/etc" "/var/run" "/projects" "/root"; do \
-#         chgrp -R 0 ${f} && \
-#         chmod -R g+rwX ${f}; \
-#    done
+RUN for f in "/etc" "/var/run" "/projects" "/root"; do \
+    	chgrp -R 0 ${f} && \
+    	chmod -R g+rwX ${f}; \
+    done
 
 
 COPY .fonts.conf /root/
