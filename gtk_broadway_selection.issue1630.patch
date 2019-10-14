@@ -1,0 +1,42 @@
+diff --git a/gtk/gtkselection.c b/gtk/gtkselection.c
+index b976d19..7f4919a 100644
+--- a/gtk/gtkselection.c
++++ b/gtk/gtkselection.c
+@@ -112,6 +112,10 @@
+ #include <gdk/wayland/gdkwayland.h>
+ #endif
+ 
++#ifdef GDK_WINDOWING_BROADWAY
++#include "broadway/gdkbroadway.h"
++#endif
++
+ #undef DEBUG_SELECTION
+ 
+ /* Maximum size of a sent chunk, in bytes. Also the default size of
+@@ -2284,6 +2288,26 @@ gtk_selection_init (void)
+   gtk_selection_atoms[TARGETS] = gdk_atom_intern_static_string ("TARGETS");
+   gtk_selection_atoms[SAVE_TARGETS] = gdk_atom_intern_static_string ("SAVE_TARGETS");
+ 
++#if defined GDK_WINDOWING_BROADWAY
++  /* This patch is a workaround to circumvent unimplemented
++     clipboard functionality in broadwayd. It eliminates
++     35s delay on popup menu before first clipboard copy,
++     by initializing selection to an empty string.
++   
++     https://gitlab.gnome.org/GNOME/gtk/issues/1630
++  */ 
++  GdkDisplay *display = gdk_display_get_default ();
++
++  if (GDK_IS_BROADWAY_DISPLAY (display))
++  {
++      g_debug("gtk_selection_init: patched");
++
++      gtk_clipboard_set_text (
++          gtk_clipboard_get_default (display),
++          "", -1);
++  }
++#endif
++
+   initialize = FALSE;
+ }
+ 
